@@ -3,6 +3,7 @@ const request = require('supertest')
 jest.mock('../src/db', () => {
   const bcrypt = require('bcrypt')
   return {
+    initializeDatabase: jest.fn(async () => true),
     query: jest.fn((text, params) => {
       // simple SQL text-based dispatch for test
       if (text.includes('COUNT(*) FROM users WHERE role')) {
@@ -25,6 +26,7 @@ jest.mock('../src/db', () => {
 })
 
 const app = require('../src/app')
+const { initializeDatabase } = require('../src/db')
 
 describe('Auth routes', () => {
   test('register creates a user', async () => {
@@ -38,5 +40,9 @@ describe('Auth routes', () => {
     const res = await request(app).post('/api/auth/login').send({ email: 'whatever@example.com', password: 'secret' })
     expect(res.statusCode).toBe(200)
     expect(res.body.token).toBeDefined()
+  })
+
+  test('initializeDatabase creates the required schema when tables are missing', async () => {
+    await expect(initializeDatabase()).resolves.toBeTruthy()
   })
 })

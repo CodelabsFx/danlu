@@ -3,6 +3,7 @@ const { loadEnv } = require('./config');
 loadEnv();
 
 const app = require('./app');
+const db = require('./db');
 const { ensureDefaultAdmin } = require('./seedAdmin');
 
 // start cron jobs (only in real runtime)
@@ -13,5 +14,6 @@ if (process.env.DISABLE_CRON !== '1') {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
   console.log(`Server listening on ${PORT}`);
+  await db.initializeDatabase();
   await ensureDefaultAdmin();
 });

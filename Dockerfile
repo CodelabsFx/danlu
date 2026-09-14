@@ -17,8 +17,8 @@ FROM node:18-alpine AS runner
 WORKDIR /app
 COPY --from=base /app/node_modules ./node_modules
 COPY server ./server
-# copy built client into server for static serving
-COPY --from=client-build /app/client/dist ./server/client/dist
+# copy built client into the location the app expects for static serving
+COPY --from=client-build /app/client/dist ./client/dist
 ENV NODE_ENV=production
 EXPOSE 3000
 CMD [ "node", "server/src/index.js" ]

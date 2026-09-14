@@ -30,9 +30,15 @@ app.get('/health', (req, res) => res.json({ ok: true }));
 const path = require('path');
 const fs = require('fs');
 
-// Serve built client if available
-const clientDist = path.join(__dirname, '..', '..', 'client', 'dist');
-if (fs.existsSync(clientDist)) {
+// Serve built client if available. Render and local Docker builds can place the
+// bundle under either /app/client/dist or /app/server/client/dist.
+const possibleClientDistPaths = [
+	path.join(__dirname, '..', '..', 'client', 'dist'),
+	path.join(__dirname, '..', 'client', 'dist'),
+];
+const clientDist = possibleClientDistPaths.find((candidate) => fs.existsSync(candidate));
+
+if (clientDist) {
 	app.use(express.static(clientDist));
 
 	// Fallback to index.html for client-side routing (keep API & /health routes above)
