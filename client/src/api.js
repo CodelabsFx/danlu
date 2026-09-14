@@ -20,3 +20,19 @@ const existing = localStorage.getItem('token')
 if (existing) setAuthToken(existing)
 
 export default api
+
+export async function uploadProductImage(productId, file) {
+  const fd = new FormData()
+  fd.append('image', file)
+  const res = await api.post(`/api/products/${productId}/image`, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+  return res.data
+}
+
+export async function downloadReport(type = 'pnl', start, end) {
+  const params = new URLSearchParams()
+  if (type) params.set('type', type)
+  if (start) params.set('start', start)
+  if (end) params.set('end', end)
+  const res = await api.get(`/api/reports?${params.toString()}`, { responseType: 'blob' })
+  return res.data
+}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import api, { getStoredUser } from '../api'
+import { uploadProductImage } from '../api'
 import DataTable from '../components/DataTable'
 
 const emptyForm = {
@@ -27,6 +28,9 @@ export default function Products() {
       console.error(err)
     }
   }
+
+  const [previewFile, setPreviewFile] = useState(null)
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     loadProducts()
@@ -109,6 +113,9 @@ export default function Products() {
           <DataTable
             columns={[
               { key: 'product_name', label: 'Name', render: (row) => <span className="font-medium text-slate-800 dark:text-slate-100">{row.product_name}</span> },
+              { key: 'product_image', label: 'Image', render: (row) => (
+                row.product_image ? <img src={row.product_image} alt="" className="h-10 w-10 rounded object-cover" /> : <div className="h-10 w-10 rounded bg-slate-100 dark:bg-slate-800" />
+              ) },
               { key: 'sku', label: 'SKU' },
               { key: 'current_stock_quantity', label: 'Stock' },
               { key: 'unit_selling_price', label: 'Price', render: (row) => `KSh ${Number(row.unit_selling_price || 0).toLocaleString()}` },
@@ -195,6 +202,35 @@ export default function Products() {
                   Delete current product
                 </button>
               )}
+
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300">Product image</label>
+                <div className="mt-2 flex items-center gap-3">
+                  <input type="file" accept="image/*" onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    setPreviewFile(f || null)
+                  }} />
+                  <button className="btn btn-primary" disabled={!previewFile || !editingId || uploading} onClick={async () => {
+                    if (!editingId || !previewFile) return alert('Save product first or choose a file')
+                    try {
+                      setUploading(true)
+                      await uploadProductImage(editingId, previewFile)
+                      setPreviewFile(null)
+                      await loadProducts()
+                    } catch (err) {
+                      alert(err.response?.data?.message || 'Upload failed')
+                    } finally {
+                      setUploading(false)
+                    }
+                  }}>{uploading ? 'Uploading…' : 'Upload image'}</button>
+                </div>
+                {previewFile && (
+                  <div className="mt-3">
+                    <p className="text-xs text-slate-500">Preview</p>
+                    <img src={URL.createObjectURL(previewFile)} alt="preview" className="mt-2 h-28 w-28 rounded object-cover" />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
