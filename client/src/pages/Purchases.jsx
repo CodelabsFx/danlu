@@ -51,14 +51,14 @@ export default function Purchases() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 container">
       <div>
         <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Purchases</p>
         <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">Supplier purchases</h1>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <form onSubmit={submit} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <form onSubmit={submit} className="card p-5">
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">Record purchase</h2>
 
           <div className="mt-4 space-y-4">
@@ -124,16 +124,11 @@ export default function Purchases() {
               </select>
             </div>
 
-            <button
-              type="submit"
-              className="w-full rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white hover:bg-slate-700"
-            >
-              Save purchase
-            </button>
+            <button type="submit" className="w-full btn btn-primary">Save purchase</button>
           </div>
         </form>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="card p-5">
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">Recent purchases</h2>
           <div className="mt-4">
             <DataTable
