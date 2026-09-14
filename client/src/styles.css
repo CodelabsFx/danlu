@@ -91,3 +91,50 @@ html.dark select {
   box-shadow: var(--shadow);
   backdrop-filter: blur(8px);
 }
+
+@layer components {
+  .container {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium transition;
+    border: 1px solid var(--border);
+    background: var(--surface-strong);
+    color: var(--text);
+  }
+
+  .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+  }
+
+  .btn-ghost {
+    @apply bg-white;
+    border-color: rgba(148, 163, 184, 0.12);
+  }
+
+  .btn-primary {
+    @apply bg-slate-900 text-white;
+  }
+
+  .btn-danger {
+    @apply bg-red-500 text-white;
+  }
+
+  .nav-link {
+    @apply rounded-xl px-3 py-2 text-sm font-medium transition text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+  }
+
+  .nav-link-active {
+    @apply bg-slate-900 text-white shadow-sm;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(8px);
+    @apply p-4 rounded-xl;
+  }
+}
