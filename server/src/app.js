@@ -27,4 +27,19 @@ app.use('/api/analytics', analyticsRoutes);
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 
+const path = require('path');
+const fs = require('fs');
+
+// Serve built client if available
+const clientDist = path.join(__dirname, '..', 'client', 'dist');
+if (fs.existsSync(clientDist)) {
+	app.use(express.static(clientDist));
+
+	// Fallback to index.html for client-side routing (keep API & /health routes above)
+	app.get('*', (req, res) => {
+		if (req.path.startsWith('/api') || req.path === '/health') return res.status(404).end();
+		res.sendFile(path.join(clientDist, 'index.html'));
+	});
+}
+
 module.exports = app;
