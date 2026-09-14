@@ -81,7 +81,7 @@ export default function POS() {
   const total = cart.reduce((sum, item) => sum + item.quantity * Number(item.unit_price || 0), 0)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 container">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Sales</p>
@@ -90,7 +90,7 @@ export default function POS() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="card p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-bold text-slate-900">Products</h2>
             <input
@@ -101,9 +101,9 @@ export default function POS() {
             />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-2">
             {filteredProducts.map((product) => (
-              <div key={product.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div key={product.id} className="card p-4 bg-slate-50">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="font-semibold text-slate-900">{product.product_name}</div>
@@ -119,10 +119,7 @@ export default function POS() {
                     <div className="text-xs text-slate-500">Price</div>
                     <div className="text-lg font-bold text-slate-900">KSh {Number(product.unit_selling_price || 0).toLocaleString()}</div>
                   </div>
-                  <button
-                    onClick={() => addToCart(product)}
-                    className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700"
-                  >
+                  <button onClick={() => addToCart(product)} className="btn btn-primary">
                     Add
                   </button>
                 </div>
@@ -131,15 +128,10 @@ export default function POS() {
           </div>
         </div>
 
-        <aside className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <aside className="card p-5">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-slate-900">Cart</h2>
-            <button
-              onClick={clearCart}
-              className="text-sm font-medium text-slate-500 hover:text-slate-700"
-            >
-              Clear
-            </button>
+            <button onClick={clearCart} className="text-sm font-medium text-slate-500 hover:text-slate-700">Clear</button>
           </div>
 
           <div className="mt-5 space-y-3">
@@ -160,19 +152,9 @@ export default function POS() {
 
                   <div className="mt-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => updateQuantity(item.product_id, -1)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-200 text-lg text-slate-700"
-                      >
-                        −
-                      </button>
+                      <button onClick={() => updateQuantity(item.product_id, -1)} className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-200 text-lg text-slate-700">−</button>
                       <span className="min-w-[2rem] text-center font-semibold text-slate-900">{item.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity(item.product_id, 1)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-lg text-white"
-                      >
-                        +
-                      </button>
+                      <button onClick={() => updateQuantity(item.product_id, 1)} className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-lg text-white">+</button>
                     </div>
                   </div>
                 </div>
@@ -185,13 +167,7 @@ export default function POS() {
               <span>Total</span>
               <span className="text-lg font-bold text-white">KSh {Number(total || 0).toLocaleString()}</span>
             </div>
-            <button
-              onClick={checkout}
-              disabled={!cart.length}
-              className="mt-4 w-full rounded-xl bg-white px-4 py-3 font-semibold text-slate-900 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              Checkout
-            </button>
+            <button onClick={checkout} disabled={!cart.length} className="mt-4 w-full btn btn-ghost text-slate-900 disabled:opacity-60">Checkout</button>
           </div>
         </aside>
       </div>
