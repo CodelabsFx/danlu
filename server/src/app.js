@@ -31,7 +31,7 @@ const path = require('path');
 const fs = require('fs');
 
 // Serve built client if available
-const clientDist = path.join(__dirname, '..', 'client', 'dist');
+const clientDist = path.join(__dirname, '..', '..', 'client', 'dist');
 if (fs.existsSync(clientDist)) {
 	app.use(express.static(clientDist));
 

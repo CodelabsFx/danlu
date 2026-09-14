@@ -1,29 +1,139 @@
-import React from 'react'
-import { Routes, Route, Link } from 'react-router-dom'
+import React, { useEffect, useMemo, useState } from 'react'
+import { NavLink, Route, Routes } from 'react-router-dom'
 import Login from './pages/Login'
+import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Products from './pages/Products'
 import POS from './pages/POS'
+import Workers from './pages/Workers'
+import Expenses from './pages/Expenses'
 import ProtectedRoute from './components/ProtectedRoute'
+import { getStoredUser } from './api'
+
+const navLinks = [
+  { to: '/', label: 'Dashboard' },
+  { to: '/products', label: 'Products' },
+  { to: '/pos', label: 'POS' },
+  { to: '/workers', label: 'Workers' },
+  { to: '/expenses', label: 'Expenses' }
+]
+
+const navItem = ({ to, label }) => (
+  <NavLink
+    to={to}
+    className={({ isActive }) =>
+      `rounded-xl px-3 py-2 text-sm font-medium transition ${
+        isActive ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+      }`
+    }
+  >
+    {label}
+  </NavLink>
+)
 
 export default function App() {
-  return (
-    <div>
-      <nav className="p-4 bg-gray-100 flex items-center">
-        <Link to="/" className="mr-4">Dashboard</Link>
-        <Link to="/products" className="mr-4">Products</Link>
-        <Link to="/pos" className="mr-4">POS</Link>
-        <div className="ml-auto">
-          <button onClick={()=>{ localStorage.removeItem('token'); window.location.href = '/login' }} className="px-3 py-1 bg-red-500 text-white">Logout</button>
-        </div>
-      </nav>
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('theme') === 'dark')
+  const user = useMemo(() => getStoredUser(), [])
 
-      <main className="p-6">
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode)
+    localStorage.setItem('theme', darkMode ? 'dark' : 'light')
+  }, [darkMode])
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    window.location.href = '/login'
+  }
+
+  const isOwner = user?.role === 'owner'
+
+  return (
+    <div className="min-h-screen bg-slate-100 text-slate-800 transition-colors dark:bg-slate-950 dark:text-slate-100">
+      <header className="border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 font-bold text-white">D</div>
+            <div>
+              <div className="text-lg font-bold tracking-tight">Danlu POS</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">Inventory & operations</div>
+            </div>
+          </div>
+
+          <nav className="hidden items-center gap-2 md:flex">
+            {navLinks.map((link) => (
+              <React.Fragment key={link.to}>{navItem(link)}</React.Fragment>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setDarkMode((value) => !value)}
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+            >
+              {darkMode ? 'Light' : 'Dark'}
+            </button>
+            {isOwner && (
+              <div className="hidden rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 sm:inline-flex">
+                Admin
+              </div>
+            )}
+            <button
+              onClick={handleLogout}
+              className="hidden rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600 sm:inline-flex"
+            >
+              Logout
+            </button>
+            <button
+              type="button"
+              onClick={() => setMenuOpen((value) => !value)}
+              className="inline-flex rounded-xl border border-slate-200 bg-white p-2 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 md:hidden"
+              aria-label="Toggle menu"
+            >
+              ☰
+            </button>
+          </div>
+        </div>
+
+        {menuOpen && (
+          <div className="border-t border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900 md:hidden">
+            <div className="flex flex-col gap-2">
+              {navLinks.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `rounded-xl px-3 py-2 text-sm font-medium ${
+                      isActive ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
+                    }`
+                  }
+                >
+                  {link.label}
+                </NavLink>
+              ))}
+              <button
+                onClick={handleLogout}
+                className="mt-2 rounded-xl bg-red-500 px-3 py-2 text-sm font-semibold text-white"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        )}
+      </header>
+
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
           <Route path="/pos" element={<ProtectedRoute><POS /></ProtectedRoute>} />
+          <Route path="/workers" element={<ProtectedRoute><Workers /></ProtectedRoute>} />
+          <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
         </Routes>
       </main>
     </div>

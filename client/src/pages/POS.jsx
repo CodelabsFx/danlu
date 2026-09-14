@@ -1,68 +1,199 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import api from '../api'
 
-export default function POS(){
+export default function POS() {
   const [products, setProducts] = useState([])
   const [cart, setCart] = useState([])
+  const [search, setSearch] = useState('')
 
-  useEffect(()=>{
-    async function load(){
-      try{
+  useEffect(() => {
+    async function load() {
+      try {
         const res = await api.get('/api/products')
-        setProducts(res.data.products)
-      }catch(err){
+        setProducts(res.data.products || [])
+      } catch (err) {
         console.error(err)
       }
     }
+
     load()
   }, [])
 
-  function addToCart(product){
-    setCart(prev => {
-      const existing = prev.find(i=>i.product_id===product.id)
-      if (existing) return prev.map(i=> i.product_id===product.id ? { ...i, quantity: i.quantity+1 } : i)
-      return [...prev, { product_id: product.id, quantity: 1, unit_price: product.unit_selling_price }]
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const term = search.toLowerCase()
+      return (
+        product.product_name?.toLowerCase().includes(term) ||
+        product.sku?.toLowerCase().includes(term)
+      )
+    })
+  }, [products, search])
+
+  function addToCart(product) {
+    setCart((prev) => {
+      const existing = prev.find((item) => item.product_id === product.id)
+      if (existing) {
+        return prev.map((item) =>
+          item.product_id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        )
+      }
+
+      return [...prev, { product_id: product.id, product_name: product.product_name, quantity: 1, unit_price: Number(product.unit_selling_price || 0) }]
     })
   }
 
-  async function checkout(){
-    try{
-      await api.post('/api/sales', { items: cart.map(i=>({ product_id: i.product_id, quantity: i.quantity, unit_price: i.unit_price })), payment_method: 'cash' })
-      alert('Sale recorded')
+  function updateQuantity(productId, delta) {
+    setCart((prev) =>
+      prev
+        .map((item) =>
+          item.product_id === productId
+            ? { ...item, quantity: Math.max(0, item.quantity + delta) }
+            : item
+        )
+        .filter((item) => item.quantity > 0)
+    )
+  }
+
+  function clearCart() {
+    setCart([])
+  }
+
+  async function checkout() {
+    if (!cart.length) return
+
+    try {
+      await api.post('/api/sales', {
+        items: cart.map((item) => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+          unit_price: item.unit_price
+        })),
+        payment_method: 'cash'
+      })
+
+      alert('Sale recorded successfully')
       setCart([])
-    }catch(err){
+    } catch (err) {
       alert(err.response?.data?.message || 'Checkout failed')
     }
   }
 
+  const total = cart.reduce((sum, item) => sum + item.quantity * Number(item.unit_price || 0), 0)
+
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Point of Sale</h2>
-      <div className="grid grid-cols-3 gap-4">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h3>Products</h3>
-          <ul>
-            {products.map(p=> (
-              <li key={p.id} className="p-2 border mb-2">
-                <div className="font-bold">{p.product_name}</div>
-                <div>Price: {p.unit_selling_price}</div>
-                <div>Stock: {p.current_stock_quantity}</div>
-                <button className="mt-2 px-2 py-1 bg-green-600 text-white" onClick={()=>addToCart(p)}>Add</button>
-              </li>
-            ))}
-          </ul>
+          <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Sales</p>
+          <h1 className="mt-2 text-3xl font-bold text-slate-900">Point of sale</h1>
         </div>
-        <div className="col-span-2">
-          <h3>Cart</h3>
-          <ul>
-            {cart.map(item=> (
-              <li key={item.product_id} className="p-2 border mb-2">
-                Product: {item.product_id} — Qty: {item.quantity} — Unit: {item.unit_price}
-              </li>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-bold text-slate-900">Products</h2>
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search products"
+              className="w-52 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-slate-400"
+            />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {filteredProducts.map((product) => (
+              <div key={product.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="font-semibold text-slate-900">{product.product_name}</div>
+                    <div className="text-xs uppercase tracking-wide text-slate-500">{product.sku || 'No SKU'}</div>
+                  </div>
+                  <div className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700">
+                    {product.current_stock_quantity} in stock
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center justify-between">
+                  <div>
+                    <div className="text-xs text-slate-500">Price</div>
+                    <div className="text-lg font-bold text-slate-900">KSh {Number(product.unit_selling_price || 0).toLocaleString()}</div>
+                  </div>
+                  <button
+                    onClick={() => addToCart(product)}
+                    className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
             ))}
-          </ul>
-          <button className="px-4 py-2 bg-blue-600 text-white" onClick={checkout}>Checkout</button>
+          </div>
         </div>
+
+        <aside className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-slate-900">Cart</h2>
+            <button
+              onClick={clearCart}
+              className="text-sm font-medium text-slate-500 hover:text-slate-700"
+            >
+              Clear
+            </button>
+          </div>
+
+          <div className="mt-5 space-y-3">
+            {cart.length === 0 ? (
+              <div className="rounded-xl bg-slate-50 px-3 py-10 text-center text-sm text-slate-500">No items selected yet.</div>
+            ) : (
+              cart.map((item) => (
+                <div key={item.product_id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="font-medium text-slate-800">{item.product_name}</div>
+                      <div className="text-xs text-slate-500">KSh {Number(item.unit_price || 0).toLocaleString()} each</div>
+                    </div>
+                    <div className="text-sm font-semibold text-slate-900">
+                      KSh {(item.quantity * Number(item.unit_price || 0)).toLocaleString()}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => updateQuantity(item.product_id, -1)}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-200 text-lg text-slate-700"
+                      >
+                        −
+                      </button>
+                      <span className="min-w-[2rem] text-center font-semibold text-slate-900">{item.quantity}</span>
+                      <button
+                        onClick={() => updateQuantity(item.product_id, 1)}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-lg text-white"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="mt-5 rounded-2xl bg-slate-900 p-4 text-white">
+            <div className="flex items-center justify-between text-sm text-slate-200">
+              <span>Total</span>
+              <span className="text-lg font-bold text-white">KSh {Number(total || 0).toLocaleString()}</span>
+            </div>
+            <button
+              onClick={checkout}
+              disabled={!cart.length}
+              className="mt-4 w-full rounded-xl bg-white px-4 py-3 font-semibold text-slate-900 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Checkout
+            </button>
+          </div>
+        </aside>
       </div>
     </div>
   )

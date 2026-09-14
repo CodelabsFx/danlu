@@ -1,67 +1,212 @@
 import React, { useEffect, useState } from 'react'
-import api from '../api'
+import api, { getStoredUser } from '../api'
+import DataTable from '../components/DataTable'
 
-export default function Products(){
+const emptyForm = {
+  product_name: '',
+  category: '',
+  sku: '',
+  unit_cost_price: 0,
+  unit_selling_price: 0,
+  current_stock_quantity: 0,
+  min_stock_alert_threshold: 0
+}
+
+export default function Products() {
   const [products, setProducts] = useState([])
-  const [form, setForm] = useState({ product_name: '', sku: '', unit_selling_price: 0, current_stock_quantity: 0 })
-  useEffect(()=>{
-    async function load(){
-      try{
-        const res = await api.get('/api/products')
-        setProducts(res.data.products)
-      }catch(err){
-        console.error(err)
-      }
+  const [form, setForm] = useState(emptyForm)
+  const [editingId, setEditingId] = useState(null)
+  const user = getStoredUser()
+  const isAdmin = user?.role === 'owner'
+
+  async function loadProducts() {
+    try {
+      const res = await api.get('/api/products')
+      setProducts(res.data.products || [])
+    } catch (err) {
+      console.error(err)
     }
-    load()
+  }
+
+  useEffect(() => {
+    loadProducts()
   }, [])
 
-  return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Products</h2>
-      <table className="w-full table-auto border-collapse">
-        <thead>
-          <tr>
-            <th className="border p-2">Name</th>
-            <th className="border p-2">SKU</th>
-            <th className="border p-2">Stock</th>
-            <th className="border p-2">Price</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map(p=> (
-            <tr key={p.id}>
-              <td className="border p-2">{p.product_name}</td>
-              <td className="border p-2">{p.sku}</td>
-              <td className="border p-2">{p.current_stock_quantity}</td>
-              <td className="border p-2">{p.unit_selling_price}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+  function resetForm() {
+    setForm(emptyForm)
+    setEditingId(null)
+  }
 
-      <div className="mt-6 max-w-md">
-        <h3 className="font-bold mb-2">Add Product</h3>
-        <div className="mb-2">
-          <input placeholder="Name" className="w-full p-2 border" value={form.product_name} onChange={e=>setForm({...form, product_name: e.target.value})} />
+  async function handleCreate() {
+    try {
+      const payload = {
+        ...form,
+        unit_cost_price: Number(form.unit_cost_price),
+        unit_selling_price: Number(form.unit_selling_price),
+        current_stock_quantity: Number(form.current_stock_quantity),
+        min_stock_alert_threshold: Number(form.min_stock_alert_threshold)
+      }
+
+      if (editingId) {
+        await api.put(`/api/products/${editingId}`, payload)
+      } else {
+        await api.post('/api/products', payload)
+      }
+
+      resetForm()
+      await loadProducts()
+    } catch (err) {
+      alert(err.response?.data?.message || 'Save failed')
+    }
+  }
+
+  function handleEdit(product) {
+    setEditingId(product.id)
+    setForm({
+      product_name: product.product_name || '',
+      category: product.category || '',
+      sku: product.sku || '',
+      unit_cost_price: product.unit_cost_price || 0,
+      unit_selling_price: product.unit_selling_price || 0,
+      current_stock_quantity: product.current_stock_quantity || 0,
+      min_stock_alert_threshold: product.min_stock_alert_threshold || 0
+    })
+  }
+
+  async function handleDelete(id) {
+    try {
+      if (!window.confirm('Delete this product?')) return
+      await api.delete(`/api/products/${id}`)
+      await loadProducts()
+    } catch (err) {
+      alert(err.response?.data?.message || 'Delete failed')
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Inventory</p>
+          <h1 className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">Products</h1>
         </div>
-        <div className="mb-2">
-          <input placeholder="SKU" className="w-full p-2 border" value={form.sku} onChange={e=>setForm({...form, sku: e.target.value})} />
+        {!isAdmin && (
+          <div className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+            View-only access
+          </div>
+        )}
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Stock list</h2>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+              {products.length} items
+            </span>
+          </div>
+
+          <DataTable
+            columns={[
+              { key: 'product_name', label: 'Name', render: (row) => <span className="font-medium text-slate-800 dark:text-slate-100">{row.product_name}</span> },
+              { key: 'sku', label: 'SKU' },
+              { key: 'current_stock_quantity', label: 'Stock' },
+              { key: 'unit_selling_price', label: 'Price', render: (row) => `KSh ${Number(row.unit_selling_price || 0).toLocaleString()}` },
+              { key: 'actions', label: 'Action', render: (row) => isAdmin ? (
+                <div className="flex gap-2">
+                  <button onClick={() => handleEdit(row)} className="rounded-lg bg-sky-500 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-sky-600">Edit</button>
+                  <button onClick={() => handleDelete(row.id)} className="rounded-lg bg-red-500 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-red-600">Delete</button>
+                </div>
+              ) : <span className="text-slate-400">—</span> }
+            ]}
+            rows={products}
+            emptyText="No products found."
+          />
         </div>
-        <div className="mb-2">
-          <input placeholder="Price" type="number" className="w-full p-2 border" value={form.unit_selling_price} onChange={e=>setForm({...form, unit_selling_price: e.target.value})} />
-        </div>
-        <div className="mb-2">
-          <input placeholder="Stock" type="number" className="w-full p-2 border" value={form.current_stock_quantity} onChange={e=>setForm({...form, current_stock_quantity: e.target.value})} />
-        </div>
-        <button className="px-3 py-1 bg-green-600 text-white" onClick={async ()=>{
-          try{
-            await api.post('/api/products', form)
-            const res = await api.get('/api/products')
-            setProducts(res.data.products)
-            setForm({ product_name: '', sku: '', unit_selling_price: 0, current_stock_quantity: 0 })
-          }catch(err){ alert(err.response?.data?.message || 'Create failed') }
-        }}>Create</button>
+
+        {isAdmin && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{editingId ? 'Edit product' : 'Add product'}</h2>
+            <div className="mt-5 space-y-3">
+              <input
+                value={form.product_name}
+                onChange={(e) => setForm({ ...form, product_name: e.target.value })}
+                placeholder="Product name"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              />
+              <input
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                placeholder="Category"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              />
+              <input
+                value={form.sku}
+                onChange={(e) => setForm({ ...form, sku: e.target.value })}
+                placeholder="SKU"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input
+                  type="number"
+                  value={form.unit_cost_price}
+                  onChange={(e) => setForm({ ...form, unit_cost_price: e.target.value })}
+                  placeholder="Cost price"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                />
+                <input
+                  type="number"
+                  value={form.unit_selling_price}
+                  onChange={(e) => setForm({ ...form, unit_selling_price: e.target.value })}
+                  placeholder="Selling price"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input
+                  type="number"
+                  value={form.current_stock_quantity}
+                  onChange={(e) => setForm({ ...form, current_stock_quantity: e.target.value })}
+                  placeholder="Stock"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                />
+                <input
+                  type="number"
+                  value={form.min_stock_alert_threshold}
+                  onChange={(e) => setForm({ ...form, min_stock_alert_threshold: e.target.value })}
+                  placeholder="Low stock alert"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCreate}
+                  className="flex-1 rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-500"
+                >
+                  {editingId ? 'Update product' : 'Save product'}
+                </button>
+                {editingId && (
+                  <button
+                    onClick={resetForm}
+                    className="rounded-xl border border-slate-200 px-4 py-3 font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-200"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+
+              {editingId && (
+                <button
+                  onClick={() => handleDelete(editingId)}
+                  className="w-full rounded-xl bg-red-500 px-4 py-3 font-semibold text-white hover:bg-red-600"
+                >
+                  Delete current product
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
