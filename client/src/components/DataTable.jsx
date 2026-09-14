@@ -2,13 +2,13 @@ import React from 'react'
 
 export default function DataTable({ columns, rows, emptyText = 'No records available.' }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_16px_32px_rgba(15,23,42,0.04)] dark:border-slate-800 dark:bg-slate-900">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-slate-200 text-left dark:divide-slate-700">
           <thead className="bg-slate-50 dark:bg-slate-800/80">
             <tr>
               {columns.map((column) => (
-                <th key={column.key} className="px-4 py-3 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                <th key={column.key} className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-300">
                   {column.label}
                 </th>
               ))}
@@ -23,7 +23,7 @@ export default function DataTable({ columns, rows, emptyText = 'No records avail
               </tr>
             ) : (
               rows.map((row, rowIndex) => (
-                <tr key={row.id ?? rowIndex}>
+                <tr key={row.id ?? rowIndex} className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">
                   {columns.map((column) => (
                     <td key={`${row.id ?? rowIndex}-${column.key}`} className="px-4 py-3 align-top">
                       {typeof column.render === 'function' ? column.render(row) : row[column.key]}
