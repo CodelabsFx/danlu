@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: danlu
+      POSTGRES_PASSWORD: danlu
+      POSTGRES_DB: danlu_db
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  server:
+    build: ./server
+    environment:
+      DATABASE_URL: postgres://danlu:danlu@db:5432/danlu_db
+      JWT_SECRET: change_me
+      OWNER_EMAILS: owner1@example.com
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+volumes:
+  db-data:
+    driver: local
