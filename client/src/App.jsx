@@ -5,8 +5,11 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Products from './pages/Products'
 import POS from './pages/POS'
+import Purchases from './pages/Purchases'
+import StockMovements from './pages/StockMovements'
 import Workers from './pages/Workers'
 import Expenses from './pages/Expenses'
+import Salaries from './pages/Salaries'
 import ProtectedRoute from './components/ProtectedRoute'
 import { getStoredUser } from './api'
 
@@ -14,8 +17,11 @@ const navLinks = [
   { to: '/', label: 'Dashboard' },
   { to: '/products', label: 'Products' },
   { to: '/pos', label: 'POS' },
+  { to: '/purchases', label: 'Purchases' },
+  { to: '/stock-movements', label: 'Stock' },
   { to: '/workers', label: 'Workers' },
-  { to: '/expenses', label: 'Expenses' }
+  { to: '/expenses', label: 'Expenses' },
+  { to: '/salaries', label: 'Salaries' }
 ]
 
 const navItem = ({ to, label }) => (
@@ -132,8 +138,11 @@ export default function App() {
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
           <Route path="/pos" element={<ProtectedRoute><POS /></ProtectedRoute>} />
+          <Route path="/purchases" element={<ProtectedRoute><Purchases /></ProtectedRoute>} />
+          <Route path="/stock-movements" element={<ProtectedRoute><StockMovements /></ProtectedRoute>} />
           <Route path="/workers" element={<ProtectedRoute><Workers /></ProtectedRoute>} />
           <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
+          <Route path="/salaries" element={<ProtectedRoute><Salaries /></ProtectedRoute>} />
         </Routes>
       </main>
     </div>

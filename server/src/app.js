@@ -9,6 +9,11 @@ const productRoutes = require('./routes/products');
 const salesRoutes = require('./routes/sales');
 const workersRoutes = require('./routes/workers');
 const expensesRoutes = require('./routes/expenses');
+const purchasesRoutes = require('./routes/purchases');
+const stockMovementsRoutes = require('./routes/stock-movements');
+const salariesRoutes = require('./routes/salaries');
+const settingsRoutes = require('./routes/settings');
+const auditLogsRoutes = require('./routes/audit-logs');
 const analyticsRoutes = require('./routes/analytics');
 
 const app = express();
@@ -23,6 +28,11 @@ app.use('/api/products', productRoutes);
 app.use('/api/sales', salesRoutes);
 app.use('/api/workers', workersRoutes);
 app.use('/api/expenses', expensesRoutes);
+app.use('/api/purchases', purchasesRoutes);
+app.use('/api/stock-movements', stockMovementsRoutes);
+app.use('/api/salaries', salariesRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/audit-logs', auditLogsRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
 app.get('/health', (req, res) => res.json({ ok: true }));
