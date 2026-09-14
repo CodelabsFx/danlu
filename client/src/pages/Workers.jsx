@@ -79,14 +79,14 @@ export default function Workers() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 container">
       <div>
         <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Team</p>
         <h1 className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">Workers</h1>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="card p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">Team roster</h2>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
@@ -101,8 +101,8 @@ export default function Workers() {
               { key: 'salary_amount', label: 'Salary', render: (row) => `KSh ${Number(row.salary_amount || 0).toLocaleString()}` },
               { key: 'actions', label: 'Action', render: (row) => isAdmin ? (
                 <div className="flex gap-2">
-                  <button onClick={() => handleEdit(row)} className="rounded-lg bg-sky-500 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-sky-600">Edit</button>
-                  <button onClick={() => handleDelete(row.id)} className="rounded-lg bg-red-500 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-red-600">Delete</button>
+                  <button onClick={() => handleEdit(row)} className="btn btn-primary px-3 py-1.5 text-xs">Edit</button>
+                  <button onClick={() => handleDelete(row.id)} className="btn btn-danger px-3 py-1.5 text-xs">Delete</button>
                 </div>
               ) : <span className="text-slate-400">—</span> }
             ]}
@@ -112,7 +112,7 @@ export default function Workers() {
         </div>
 
         {isAdmin && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="card p-5">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">{editingId ? 'Edit worker' : 'Add worker'}</h2>
             <div className="mt-5 space-y-3">
               <input
@@ -156,19 +156,9 @@ export default function Workers() {
               </div>
 
               <div className="flex gap-3">
-                <button
-                  onClick={handleCreate}
-                  className="flex-1 rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white hover:bg-slate-700"
-                >
-                  {editingId ? 'Update worker' : 'Save worker'}
-                </button>
+                <button onClick={handleCreate} className="flex-1 btn btn-primary">{editingId ? 'Update worker' : 'Save worker'}</button>
                 {editingId && (
-                  <button
-                    onClick={resetForm}
-                    className="rounded-xl border border-slate-200 px-4 py-3 font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-200"
-                  >
-                    Cancel
-                  </button>
+                  <button onClick={resetForm} className="btn btn-ghost">Cancel</button>
                 )}
               </div>
             </div>
