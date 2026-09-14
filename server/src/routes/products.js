@@ -3,6 +3,15 @@ const router = express.Router();
 const db = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const { requireRole } = require('../middleware/roles');
+const path = require('path');
+const multer = require('multer');
+
+const uploadsDir = path.join(__dirname, '..', 'uploads');
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) { cb(null, uploadsDir); },
+  filename: function (req, file, cb) { const unique = `${Date.now()}-${Math.round(Math.random()*1e9)}-${file.originalname.replace(/\s+/g,'_')}`; cb(null, unique); }
+});
+const upload = multer({ storage });
 
 // List all products
 router.get('/', async (req, res) => {
@@ -91,6 +100,20 @@ router.delete('/:id', requireAuth, requireRole('owner'), async (req, res) => {
     return res.json({ deleted: q.rows[0] });
   } catch (err) {
     console.error('delete product', err);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Upload product image
+router.post('/:id/image', requireAuth, requireRole('owner'), upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'image file required' });
+    const imageUrl = `/uploads/${req.file.filename}`;
+    const q = await db.query('UPDATE products SET product_image = $1 WHERE id = $2 RETURNING *', [imageUrl, req.params.id]);
+    if (q.rows.length === 0) return res.status(404).json({ message: 'Not found' });
+    return res.json({ product: q.rows[0] });
+  } catch (err) {
+    console.error('upload product image', err);
     return res.status(500).json({ message: 'Internal server error' });
   }
 });

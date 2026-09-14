@@ -28,7 +28,7 @@ router.get('/:id', requireAuth, async (req, res) => {
 });
 
 // Create a sale with items, deduct stock in a transaction
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, requireRole('owner'), async (req, res) => {
   const client = await db.pool.connect();
   try {
     const { items, payment_method } = req.body;

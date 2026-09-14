@@ -18,8 +18,8 @@ export default function DataCard({ title, value, tone = 'slate', subtitle, actio
   }
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_14px_28px_rgba(15,23,42,0.06)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-slate-900">
-      <div className={`absolute inset-0 bg-gradient-to-br ${accentMap[tone] || accentMap.slate}`} />
+    <div className="card group relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5">
+      <div className={`absolute inset-0 bg-gradient-to-br ${accentMap[tone] || accentMap.slate} pointer-events-none`} />
       <div className="relative flex items-start justify-between gap-3">
         <div>
           <div className="text-sm font-medium text-slate-500 dark:text-slate-400">{title}</div>

@@ -2,7 +2,7 @@ import React from 'react'
 
 export default function DataTable({ columns, rows, emptyText = 'No records available.' }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_16px_32px_rgba(15,23,42,0.04)] dark:border-slate-800 dark:bg-slate-900">
+    <div className="card overflow-hidden">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-slate-200 text-left dark:divide-slate-700">
           <thead className="bg-slate-50 dark:bg-slate-800/80">

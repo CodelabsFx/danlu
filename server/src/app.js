@@ -15,6 +15,7 @@ const salariesRoutes = require('./routes/salaries');
 const settingsRoutes = require('./routes/settings');
 const auditLogsRoutes = require('./routes/audit-logs');
 const analyticsRoutes = require('./routes/analytics');
+const reportsRoutes = require('./routes/reports');
 
 const app = express();
 
@@ -34,11 +35,19 @@ app.use('/api/salaries', salariesRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/audit-logs', auditLogsRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/reports', reportsRoutes);
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 
 const path = require('path');
 const fs = require('fs');
+
+// Serve uploaded files (product images)
+const uploadsDir = path.join(__dirname, '..', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+	try { fs.mkdirSync(uploadsDir); } catch (e) { /* ignore */ }
+}
+app.use('/uploads', express.static(uploadsDir));
 
 // Serve built client if available. Render and local Docker builds can place the
 // bundle under either /app/client/dist or /app/server/client/dist.
